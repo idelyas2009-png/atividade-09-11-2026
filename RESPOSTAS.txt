@@ -1,0 +1,37 @@
+========================================================================
+RESPOSTAS DAS PERGUNTAS DE REFLEXÃO CRÍTICA - BIBLIOTECH
+========================================================================
+
+1. Integração: Que problema de integração entre front-end e back-end (ex.: CORS, formato do JSON, status HTTP) você enfrentou e como resolveu?
+
+Resposta:
+O principal problema de integração enfrentado foi o bloqueio de requisições por CORS (Cross-Origin Resource Sharing) ao tentar realizar requisições HTTP (fetch) a partir da aplicação front-end (executada localmente em porta/origem diferente da API Spring Boot no servidor 8080). 
+Para resolver esse problema, foi configurada a anotação `@CrossOrigin(origins = "*")` diretamente nos controladores da API e criada uma classe de configuração `WebConfig` implementando `WebMvcConfigurer` no Spring Boot. Isso garantiu que os cabeçalhos HTTP necessários (Access-Control-Allow-Origin) fossem retornados, autorizando a comunicação entre a interface web e os endpoints REST.
+
+------------------------------------------------------------------------
+
+2. Contrato da API e validação: Como o front-end trata as respostas 400, 404 e 409 da API? Por que o back-end precisa validar os dados mesmo que o front-end já valide?
+
+Resposta:
+Tratamento no Front-end:
+- 400 Bad Request: O front-end intercepta o JSON de resposta com os erros de validação de campos (Bean Validation) e exibe uma mensagem explicativa de alerta ao usuário.
+- 404 Not Found: O front-end captura a mensagem do backend e notifica que o recurso/livro requisitado não foi localizado no banco de dados.
+- 409 Conflict: O front-end captura o aviso de violação de regra de negócio (ex: tentativa de cadastrar um ISBN duplicado) e exibe um alerta claro ao usuário.
+
+Por que o Back-end deve validar?
+A validação no front-end melhora a experiência do usuário (UX) dando feedback instantâneo, porém não garante segurança de dados. Qualquer cliente pode burlar o front-end (usando ferramentas como Postman, cURL ou inspecionando requisições no navegador) e enviar dados maliciosos ou inconsistentes diretamente para a API. O back-end é a única camada de autoridade sobre as regras de negócio e integridade da aplicação.
+
+------------------------------------------------------------------------
+
+3. Uso crítico da IA: Qual foi o prompt mais importante que você utilizou e por quê? Que erro ou imperfeição o código gerado apresentou (ex.: imports javax em vez de jakarta, status 200 para tudo) e como foi corrigido? Por que um programador não pode copiar e colar código gerado por IA sem testá-lo?
+
+Resposta:
+Prompt mais importante:
+"Crie uma API REST com Spring Boot 3 para o gerenciamento de acervo de livros com operacoes de CRUD completo, incluindo anotacoes de Bean Validation nos modelos, tratamento global de excecoes com ControllerAdvice e suporte a CORS."
+
+Imperfeições / Erros corrigidos do código gerado por IA:
+- Utilização de pacotes depreciados `javax.persistence.*` e `javax.validation.*` gerados por versões antigas da base de conhecimento da IA, que causam erro de compilação no Spring Boot 3.x (que exige `jakarta.persistence.*` e `jakarta.validation.*`).
+- Algumas sugestões iniciais retornavam status HTTP 200 OK para operações de criação em vez de `201 Created` ou tratavam exceções genéricas retornando 200 com mensagem de erro no corpo. Isso foi corrigido para seguir o padrão REST (201 para POST, 204 para DELETE, 400 para erros de validação e 409 para conflitos de chave única).
+
+Por que não se deve apenas copiar e colar:
+A inteligência artificial pode gerar soluções desatualizadas, sem considerar a versão das dependências (ex.: Spring Boot 2 vs 3), ignorar brechas de segurança (como vulnerabilidade a SQL Injection via concatenação de strings ou ausência de CORS), ou escrever código fora dos padrões arquiteturais exigidos. O desenvolvedor deve revisar, testar, adaptar e validar todo o código para garantir a robustez e conformidade da aplicação.
